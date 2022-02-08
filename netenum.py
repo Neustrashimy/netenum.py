@@ -28,10 +28,10 @@ def doPingSweep(interface:str, ips:list, resolve=False, timeout=1, varbose=False
 
             host['ip'] = str(ip)
             start_time = datetime.now()
-            ans = sr1(IP(dst=str(ip))/ICMP(), timeout=timeout, verbose=False)
+            ans = sr1(IP(dst=str(ip))/ICMP(), timeout=timeout, iface=interface, verbose=False)
             if ans:
                 host['rtt'] = '%.2f' % ((datetime.now() - start_time).microseconds /1000) # microseconds to milliseconds
-                host['time'] = datetime.now()
+                host['time'] = datetime.now().isoformat()
 
                 # resolve DNS names
                 host['name'] = ""
@@ -90,7 +90,7 @@ def doArpScan(interface:str, ips:list, resolve=False, timeout=1, varbose=False)-
                 except Exception as e:
                     host['vendor'] = "Unknown"
 
-                host['time'] = datetime.now()
+                host['time'] = datetime.now().isoformat()
 
                 if varbose: print("...Respond: %s (%s)" % (host['mac'], host['vendor']))
 
@@ -158,6 +158,10 @@ if __name__ == "__main__":
 
     if args.target is None and args.network is None:
         print('[!] You must specify a target IP address or IP Network')
+        exit(1)
+
+    if args.target is not None and args.network is not None:
+        print('[!] You can only specify a target IP address or a network, not both')
         exit(1)
     
     ips = None
