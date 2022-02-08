@@ -7,8 +7,7 @@ import socket
 import ipaddress
 import json
 from datetime import datetime
-from ping3 import ping 
-from scapy.all import ARP, Ether, sr1, srp
+from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 from mac_vendor_lookup import MacLookup
 from prettytable import PrettyTable
 
@@ -25,12 +24,13 @@ def doPingSweep(interface:str, ips:list, resolve=False, timeout=1, varbose=False
         for ip in ips:
             host = {}
 
-            if varbose: print("Pinging %s" % ip, end =" ")
+            if varbose: print("ICMP: Echo Request %s" % ip, end =" ")
 
             host['ip'] = str(ip)
-            ans = ping(str(ip), timeout=timeout)
+            start_time = datetime.now()
+            ans = sr1(IP(dst=str(ip))/ICMP(), timeout=timeout, verbose=False)
             if ans:
-                host['rtt'] = '%.2f' % (ans * 1000)
+                host['rtt'] = '%.2f' % ((datetime.now() - start_time).microseconds /1000) # microseconds to milliseconds
                 host['time'] = datetime.now()
 
                 # resolve DNS names
@@ -53,6 +53,7 @@ def doPingSweep(interface:str, ips:list, resolve=False, timeout=1, varbose=False
         exit(1)
 
     return ret
+
 
 ## doArpScan
 # interface = Host's interface (string, eg. 'eth0')
@@ -106,7 +107,7 @@ def doArpScan(interface:str, ips:list, resolve=False, timeout=1, varbose=False)-
 
 ## getHostAddresses
 # network = network to get hosts (IPv4Network object)
-# return = list of IPv4Address objects without broadcast and loopback addresses (list)
+# return = list of IPAddress objects without broadcast and loopback addresses (list)
 def getHostAddresses(network)->list:
     netaddr = network.network_address
     broadcast = network.broadcast_address
@@ -137,7 +138,8 @@ if __name__ == "__main__":
                                             "Report bug to: https://github.com/Neustrashimy/netenum.py/issues\n\n")
 
     parser.add_argument('-i', '--interface', type=str, nargs='?', help='Interface to use')
-    parser.add_argument('-t', '--target',    type=str, nargs='?', help='Target IPv4 address or IPv4 network')
+    parser.add_argument('-t', '--target',    type=str, nargs='?', help='Target IPv4 address (eg. 192.168.0.1)')
+    parser.add_argument('-n', '--network',   type=str, nargs='?', help='Target IPv4 network, CIDR Expression (eg. 192.168.0.0/24)')
     parser.add_argument('-p', '--ping',      action='store_true', help='Perform Ping sweep')
     parser.add_argument('-a', '--arp',       action='store_true', help='Perform ARP scan')
     parser.add_argument('-r', '--resolve',   action='store_true', help='Resolve Hostname from IP')
@@ -154,27 +156,25 @@ if __name__ == "__main__":
         print('[!] You must specify an interface')
         exit(1)
 
-    if args.target is None:
-        print('[!] You must specify a target IPv4 address or IPv4 Network')
+    if args.target is None and args.network is None:
+        print('[!] You must specify a target IP address or IP Network')
         exit(1)
-    else:
-        ips = None
+    
+    ips = None
+    if args.target: # single target
         try:
             ips = [ipaddress.ip_address(args.target)]
         except ValueError:
-            pass # do nothing
-        
-        try:
-            network = ipaddress.ip_network(args.target)
-            ips = getHostAddresses(network)
-            
-        except ValueError:
-            pass # do nothing
-        
-        if ips is None:
-            print('[!] Invalid target IP address or IP range')
+            print('[!] Invalid target IP address: %s' % args.target)
             exit(1)
-    
+
+    if args.network: # network target
+        try:
+            network = ipaddress.ip_network(args.network)
+            ips = getHostAddresses(network)
+        except ValueError:
+            print('[!] Invalid target IP network: %s' % args.network)
+            exit(1)
     
     if args.ping is False and args.arp is False:
         print('[!] You must specify a scan type --arp or --ping')
@@ -189,11 +189,15 @@ if __name__ == "__main__":
 
     # ping sweep
     if args.ping:
-        if args.verbose: print("[*] Performing Ping Sweep " + args.target + " on" + args.interface + "...")
+        if args.verbose: print("[*] Performing Ping Sweep...")
         ret = doPingSweep(args.interface, ips, args.resolve, args.timeout, args.verbose)
         if args.verbose: print("[*] Finished Ping Sweep")
         
         if args.output == 'table':
+            if(len(ret) == 0):
+                print("[!] No hosts responded to ping")
+                exit(0)
+
             table = PrettyTable(['IP', 'HostName' ,'RTT', 'Time'])
             table.align = "l"
             for host in ret:
@@ -207,11 +211,15 @@ if __name__ == "__main__":
 
     # arp scan
     if args.arp:
-        if args.verbose: print("[*] Performing ARP scan " + args.target + " on " + args.interface + "...")
+        if args.verbose: print("[*] Performing ARP scan...")
         ret = doArpScan(args.interface, ips, args.resolve, args.timeout, args.verbose) # return list of dicts
         if args.verbose: print("[*] Finished ARP scan")
 
         if args.output == 'table':
+            if(len(ret) == 0):
+                print("[!] No hosts responded to ARP")
+                exit(0)
+            
             table = PrettyTable(['IP', 'HostName', 'MAC', 'Vendor', 'Time'])
             table.align = "l"
             for host in ret:

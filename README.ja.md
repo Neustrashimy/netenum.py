@@ -11,7 +11,7 @@
 
 ```bash
 > python netenum.py --help
-usage: netenum.py [-h] [-i [INTERFACE]] [-t [TARGET]] [-p] [-a] [-r] [-w [TIMEOUT]] [-o {table,json}] [-v]
+usage: netenum.py [-h] [-i [INTERFACE]] [-t [TARGET]] [-n [NETWORK]] [-p] [-a] [-r] [-w [TIMEOUT]] [-o {table,json}] [-v]
 
 Scan your network with ARP and Ping
 
@@ -20,7 +20,9 @@ optional arguments:
   -i [INTERFACE], --interface [INTERFACE]
                         Interface to use
   -t [TARGET], --target [TARGET]
-                        Target IPv4 address or IPv4 network
+                        Target IPv4 address (eg. 192.168.0.1)
+  -n [NETWORK], --network [NETWORK]
+                        Target IPv4 network, CIDR Expression (eg. 192.168.0.0/24)
   -p, --ping            Perform Ping sweep
   -a, --arp             Perform ARP scan
   -r, --resolve         Resolve Hostname from IP
@@ -29,11 +31,6 @@ optional arguments:
   -o {table,json}, --output {table,json}
                         Output Style (default: table)
   -v, --verbose         Verbose output
-
-!!! Please use for your own risk !!!
-
-Created by: Neustrashimy
-Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 ```
 
 ## 例
@@ -41,7 +38,7 @@ Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 ### シンプルなPingスイープ
 
 ```bash
-> python netenum.py --interface 'Ethernet 1' --target 192.168.1.0/24 --ping
+> python netenum.py --interface 'Ethernet 1' --network 192.168.1.0/24 --ping
 +---------------+----------+----------+---------------------+
 | IP            | HostName | RTT      | Time                |
 +---------------+----------+----------+---------------------+
@@ -56,7 +53,7 @@ Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 ### シンプルなARPスキャン
 
 ```bash
-> python netenum.py --interface 'Ethernet 1' --target 192.168.1.0/24 --arp
+> python netenum.py --interface 'Ethernet 1' --network 192.168.1.0/24 --arp
 +---------------+----------+-------------------+-------------------------------------+---------------------+
 | IP            | HostName | MAC               | Vendor                              | Time                |
 +---------------+----------+-------------------+-------------------------------------+---------------------+
