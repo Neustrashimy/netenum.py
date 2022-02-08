@@ -1,10 +1,13 @@
 # netenum.py
 
-Scan your network from Console. 
+コンソールからネットワークをスキャンします。
 
-[日本語](README.ja.md)
+テーブル表示のほか、JSON形式でも出力できます。
 
-## Usage
+[English](README.md)
+
+
+## 使い方
 
 ```bash
 > python netenum.py --help
@@ -33,9 +36,9 @@ Created by: Neustrashimy
 Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 ```
 
-## Examples
+## 例
 
-### Simple Ping Sweep
+### シンプルなPingスイープ
 
 ```bash
 > python netenum.py --interface 'Ethernet 1' --target 192.168.1.0/24 --ping
@@ -50,7 +53,7 @@ Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 
 ```
 
-### Simple ARP Scan
+### シンプルなARPスキャン
 
 ```bash
 > python netenum.py --interface 'Ethernet 1' --target 192.168.1.0/24 --arp
@@ -64,11 +67,12 @@ Report bug to: https://github.com/Neustrashimy/netenum.py/issues
 +---------------+----------+-------------------+-------------------------------------+---------------------+
 ```
 
-## Disclaimer
+## 免責事項
 
-* Use at own risk! Creater is not responsible for any damage caused by this program.
-* Bug report, suggestions, etc. are welcome. Please report to [Github](https://github.com/Neustrashimy/netenum.py) issue.
+* 本ソフトウエアを使用した事によるいかなる損害も補償いたしません。使用者の責任においてご使用ください。
+* バグ報告や提案、その他ご要望などは[Github](https://github.com/Neustrashimy/netenum.py) issue までお願いいたします。
 
-## Special Thanks
 
-* Realize, Inc. who create original NetEnum. https://www.e-realize.com/
+## 謝辞
+
+* オリジナルのNetEnumを作成・公開されている、[株式会社リアライズ](https://www.e-realize.com/)様に感謝申し上げます。 
