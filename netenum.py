@@ -28,10 +28,13 @@ def doPingSweep(interface:str, ips:list, resolve=False, timeout=1, varbose=False
 
             host['ip'] = str(ip)
             start_time = datetime.now()
-            ans = sr1(IP(dst=str(ip))/ICMP(), timeout=timeout, iface=interface, verbose=False)
+            ans = sr1(IP(dst=str(ip))/ICMP(),
+                        timeout=timeout,
+                        iface=interface,
+                        verbose=False)
             if ans:
                 host['rtt'] = '%.2f' % ((datetime.now() - start_time).microseconds /1000) # microseconds to milliseconds
-                host['time'] = datetime.now().isoformat()
+                host['time'] = datetime.now().astimezone().isoformat()
 
                 # resolve DNS names
                 host['name'] = ""
@@ -90,7 +93,7 @@ def doArpScan(interface:str, ips:list, resolve=False, timeout=1, varbose=False)-
                 except Exception as e:
                     host['vendor'] = "Unknown"
 
-                host['time'] = datetime.now().isoformat()
+                host['time'] = datetime.now().astimezone().isoformat()
 
                 if varbose: print("...Respond: %s (%s)" % (host['mac'], host['vendor']))
 
@@ -143,7 +146,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--ping',      action='store_true', help='Perform Ping sweep')
     parser.add_argument('-a', '--arp',       action='store_true', help='Perform ARP scan')
     parser.add_argument('-r', '--resolve',   action='store_true', help='Resolve Hostname from IP')
-    parser.add_argument('-w', '--timeout',   type=int, nargs='?', default=1, help='Timeout for ping/arp scan (default: 1)')
+    parser.add_argument('-w', '--timeout',   type=int, nargs='?', default=1, help='Timeout for ping/arp in seconds (default: 1)')
     parser.add_argument('-o', '--output',    choices=['table', 'json'], default='table', help='Output Style (default: table)')
     parser.add_argument('-v', '--verbose',   action='store_true', help='Verbose output')
 
@@ -205,7 +208,7 @@ if __name__ == "__main__":
             table = PrettyTable(['IP', 'HostName' ,'RTT', 'Time'])
             table.align = "l"
             for host in ret:
-                table.add_row([host['ip'], host['name'], host['rtt'] + "ms", host['time'].strftime("%Y-%m-%d %H:%M:%S")])
+                table.add_row([host['ip'], host['name'], host['rtt'] + "ms", host['time']])
             print(table)
 
         elif args.output == 'json':
@@ -227,7 +230,7 @@ if __name__ == "__main__":
             table = PrettyTable(['IP', 'HostName', 'MAC', 'Vendor', 'Time'])
             table.align = "l"
             for host in ret:
-                table.add_row([host['ip'], host['name'], host['mac'], host['vendor'], host['time'].strftime("%Y-%m-%d %H:%M:%S")])
+                table.add_row([host['ip'], host['name'], host['mac'], host['vendor'], host['time']])
             print(table)
 
         elif args.output == 'json':
